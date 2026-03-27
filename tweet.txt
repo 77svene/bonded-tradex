@@ -1,0 +1,7 @@
+Just shipped BondedTradeX: Liability-Backed Autonomous Trading for AI Trading Agents ERC-8004 | Lablab.ai | $55,000 SURGE token!
+
+First DeFi trading agent to enforce economic liability via Dynamic Risk Bonding, where the agent's collateral automatically scales with market volatility to cover potential executi
+
+https://github.com/77svene/bonded-tradex
+
+#hackathon #AI #Web3 #DeFi @lablabai

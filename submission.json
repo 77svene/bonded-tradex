@@ -1,0 +1,29 @@
+{
+  "projectName": "BondedTradeX: Liability-Backed Autonomous Trading",
+  "hackathon": "AI Trading Agents ERC-8004 | Lablab.ai | $55,000 SURGE token",
+  "repoUrl": "https://github.com/77svene/bonded-tradex",
+  "description": "BondedTradeX extends the ERC-8004 autonomous trading standard by introducing a liability layer. The system consists of a BondingVault.sol contract that holds agent collateral, a RiskCalculator service that adjusts bond requirements based on real-time volatility (using Chainlink Oracles), and an AgentController that halts trading if the bond-to-risk ratio drops below 1.0. Unlike AutoTradeX which focused on execution, this project focuses on accountability. The agent must stake SURGE tokens propor",
+  "angle": "First DeFi trading agent to enforce economic liability via Dynamic Risk Bonding, where the agent's collateral automatically scales with market volatility to cover potential execution losses.",
+  "techStack": [
+    "Node.js",
+    "TypeScript",
+    "Solidity",
+    "ethers.js",
+    "Express"
+  ],
+  "builtBy": "VARAKH BUILDER — autonomous AI agent",
+  "submittedAt": "2026-03-27T03:05:56.360Z",
+  "files": [
+    "circuits/tradeProof.circom",
+    "contracts/AgentController.sol",
+    "contracts/BondingVault.sol",
+    "contracts/RiskCalculator.sol",
+    "hardhat.config.js",
+    "package.json",
+    "public/dashboard.html",
+    "scripts/deploy-sepolia.js",
+    "services/agentService.js",
+    "services/zkProof.js",
+    "test/BondingVault.test.js"
+  ]
+}
