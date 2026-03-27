@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BondedTradeX | Liability-Backed Autonomous Trading</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" integrity="sha384-4LISF5TTJX/fLmGSxO53rV4miRxdg84mZsxmO8Rx5jGtp/LbrixFETvWa5a6sESd" crossorigin="anonymous">
+    <style>
+        :root{--bg-primary:#0a0e17;--bg-secondary:#111827;--bg-card:#1f2937;--text-primary:#f3f4f6;--text-secondary:#9ca3af;--accent-primary:#3b82f6;--accent-success:#10b981;--accent-danger:#ef4444;--accent-warning:#f59e0b;--border-color:#374151;--shadow:0 4px 6px -1px rgba(0,0,0,0.3)}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;line-height:1.6}
+        .dashboard{display:grid;grid-template-columns:1fr;gap:1.5rem;padding:1.5rem;max-width:1400px;margin:0 auto}
+        @media(min-width:1024px){.dashboard{grid-template-columns:2fr 1fr}}
+        .card{background:var(--bg-card);border-radius:12px;padding:1.5rem;border:1px solid var(--border-color);box-shadow:var(--shadow)}
+        .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border-color)}
+        .card-title{font-size:1.125rem;font-weight:600;color:var(--text-primary)}
+        .status-badge{display:inline-flex;align-items:center;gap:0.5rem;padding:0.25rem 0.75rem;border-radius:9999px;font-size:0.875rem;font-weight:500}
+        .status-active{background:rgba(16,185,129,0.1);color:var(--accent-success)}
+        .status-paused{background:rgba(239,68,68,0.1);color:var(--accent-danger)}
+        .status-warning{background:rgba(245,158,11,0.1);color:var(--accent-warning)}
+        .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1rem}
+        .metric-card{background:var(--bg-secondary);border-radius:8px;padding:1rem;border:1px solid var(--border-color)}
+        .metric-label{font-size:0.875rem;color:var(--text-secondary);margin-bottom:0.5rem}
+        .metric-value{font-size:1.5rem;font-weight:700;color:var(--text-primary)}
+        .metric-change{font-size:0.875rem;margin-top:0.25rem}
+        .metric-change.positive{color:var(--accent-success)}
+        .metric-change.negative{color:var(--accent-danger)}
+        .bond-info{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+        .bond-item{background:var(--bg-secondary);border-radius:8px;padding:1rem;border:1px solid var(--border-color)}
+        .bond-label{font-size:0.875rem;color:var(--text-secondary);margin-bottom:0.25rem}
+        .bond-value{font-size:1.125rem;font-weight:600;color:var(--text-primary)}
+        .risk-meter{height:8px;background:var(--bg-secondary);border-radius:4px;overflow:hidden;margin-top:0.5rem}
+        .risk-meter-fill{height:100%;transition:width 0.3s ease}
+        .risk-low{background:var(--accent-success)}
+        .risk-medium{background:var(--accent-warning)}
+        .risk-high{background:var(--accent-danger)}
+        .trade-list{max-height:400px;overflow-y:auto;margin-top:1rem}
+        .trade-item{display:flex;justify-content:space-between;align-items:center;padding:0.75rem;border-bottom:1px solid var(--border-color);transition:background 0.2s}
+        .trade-item:last-child{border-bottom:none}
+        .trade-item:hover{background:var(--bg-secondary)}
+        .trade-info{display:flex;flex-direction:column;gap:0.25rem}
+        .trade-pair{font-weight:600;font-size:0.875rem}
+        .trade-meta{font-size:0.75rem;color:var(--text-secondary)}
+        .trade-status{font-size:0.75rem;padding:0.25rem 0.5rem;border-radius:4px}
+        .trade-status.pending{background:rgba(59,130,246,0.1);color:var(--accent-primary)}
+        .trade-status.completed{background:rgba(16,185,129,0.1);color:var(--accent-success)}
+        .trade-status.failed{background:rgba(239,68,68,0.1);color:var(--accent-danger)}
+        .btn-emergency{width:100%;padding:1rem;border-radius:8px;font-weight:600;font-size:1rem;transition:all 0.3s ease}
+        .btn-emergency:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(239,68,68,0.3)}
+        .pulse{animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+        .live-indicator{display:inline-flex;align-items:center;gap:0.5rem;font-size:0.75rem;color:var(--accent-success)}
+        .live-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-success);animation:pulse 2s infinite}
+        .connection-status{display:flex;align-items:center;gap:0.5rem;font-size:0.875rem}
+        .connection-status.connected{color:var(--accent-success)}
+        .connection-status.disconnected{color:var(--accent-danger)}
+        .loading-spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border-color);border-top-color:var(--accent-primary);border-radius:50%;animation:spin 1s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .modal-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000}
+        .modal-content{background:var(--bg-card);border-radius:12px;padding:2rem;max-width:500px;width:90%;border:1px solid var(--border-color)}
+        .modal-title{font-size:1.25rem;font-weight:600;margin-bottom:1rem}
+        .modal-body{margin-bottom:1.5rem}
+        .modal-footer{display:flex;gap:1rem;justify-content:flex-end}
+        .toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:1050;display:flex;flex-direction:column;gap:0.5rem}
+        .toast{background:var(--bg-card);border-radius:8px;padding:1rem;border-left:4px solid;box-shadow:var(--shadow);animation:slideIn 0.3s ease}
+        .toast.success{border-left-color:var(--accent-success)}
+        .toast.error{border-left-color:var(--accent-danger)}
+        .toast.warning{border-left-color:var(--accent-warning)}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        .chart-container{height:200px;position:relative;margin-top:1rem}
+        .chart-placeholder{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-secondary);font-size:0.875rem}
+        .data-table{width:100%;border-collapse:collapse;margin-top:1rem}
+        .data-table th,.data-table td{padding:0.75rem;text-align:left;border-bottom:1px solid var(--border-color)}
+        .data-table th{font-size:0.75rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em}
+        .data-table td{font-size:0.875rem}
+        .data-table tr:hover{background:var(--bg-secondary)}
+        .action-bar{display:flex;gap:0.5rem;margin-top:1rem}
+        .btn{padding:0.5rem 1rem;border-radius:6px;font-size:0.875rem;font-weight:500;cursor:pointer;transition:all 0.2s ease;border:none}
+        .btn-primary{background:var(--accent-primary);color:white}
+        .btn-primary:hover{background:#2563eb}
+        .btn-secondary{background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border-color)}
+        .btn-secondary:hover{background:var(--border-color)}
+        .btn-danger{background:var(--accent-danger);color:white}
+        .btn-danger:hover{background:#dc2626}
+        .btn-success{background:var(--accent-success);color:white}
+        .btn-success:hover{background:#059669}
+        .input-group{display:flex;gap:0.5rem}
+        .input-group input{flex:1;padding:0.5rem;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-primary)}
+        .input-group input:focus{outline:none;border-color:var(--accent-primary)}
+        .header{display:flex;justify-content:space-between;align-items:center;padding:1.5rem 1.5rem 0;margin-bottom:1.5rem}
+        .header-title{font-size:1.5rem;font-weight:700}
+        .header-actions{display:flex;gap:1rem;align-items:center}
+        .wallet-address{font-family:monospace;font-size:0.875rem;background:var(--bg-secondary);padding:0.5rem 1rem;border-radius:6px}
+        .refresh-btn{background:var(--bg-secondary);border:1px solid var(--border-color);color:var(--text-primary);padding:0.5rem 1rem;border-radius:6px;cursor:pointer}
+        .refresh-btn:hover{background:var(--border-color)}
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="main-content">
+            <div class="header">
+                <div>
+                    <h1 class="header-title">BondedTradeX Dashboard</h1>
+                    <p style="color:var(--text-secondary);margin-top:0.5rem">Liability-Backed Autonomous Trading Protocol</p>
+                </div>
+                <div class="header-actions">
+                    <div class="connection-status" id="connectionStatus">
+                        <span class="live-dot"></span>
+                        <span id="connectionText">Connected</span>
+                    </div>
+                    <button class="refresh-btn" onclick="refreshData()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <div class="wallet-address" id="walletAddress">0x0000000000000000000000000000000000000000</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="bi bi-shield-check"></i> Agent Bond Status</h2>
+                    <span class="status-badge status-active" id="agentStatus">Active</span>
+                </div>
+                <div class="bond-info">
+                    <div class="bond-item">
+                        <div class="bond-label">Total Bond</div>
+                        <div class="bond-value" id="totalBond">0 SURGE</div>
+                    </div>
+                    <div class="bond-item">
+                        <div class="bond-label">Risk Buffer</div>
+                        <div class="bond-value" id="riskBuffer">0 SURGE</div>
+                    </div>
+                    <div class="bond-item">
+                        <div class="bond-label">Bond Coverage</div>
+                        <div class="bond-value" id="bondCoverage">100%</div>
+                    </div>
+                    <div class="bond-item">
+                        <div class="bond-label">Liquidation Threshold</div>
+                        <div class="bond-value" id="liquidationThreshold">100%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top:1.5rem">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="bi bi-graph-up"></i> Risk Assessment</h2>
+                    <span class="live-indicator"><span class="live-dot"></span>Live</span>
+                </div>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Current Risk Score</div>
+                        <div class="metric-value" id="riskScore">0</div>
+                        <div class="metric-change" id="riskChange">0%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Volatility Index</div>
+                        <div class="metric-value" id="volatilityIndex">0%</div>
+                        <div class="metric-change" id="volatilityChange">0%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Strategy Risk</div>
+                        <div class="metric-value" id="strategyRisk">0%</div>
+                        <div class="metric-change" id="strategyChange">0%</div>
+                    </div>
+                </div>
+                <div style="margin-top:1.5rem">
+                    <div class="metric-label">Risk Level</div>
+                    <div class="risk-meter">
+                        <div class="risk-meter-fill risk-low" id="riskMeterFill" style="width:0%"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-top:0.5rem;font-size:0.75rem;color:var(--text-secondary)">
+                        <span>Low</span>
+                        <span>Medium</span>
+                        <span>High</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top:1.5rem">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="bi bi-lightning-charge"></i> Active Trades</h2>
+                    <span class="live-indicator"><span class="live-dot"></span>Live</span>
+                </div>
+                <div class="trade-list" id="tradeList">
+                    <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
+                        <i class="bi bi-clock-history" style="font-size:2rem"></i>
+                        <p style="margin-top:1rem">No active trades</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="bi bi-bar-chart-line"></i> Performance</h2>
+                </div>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Trades</div>
+                        <div class="metric-value" id="totalTrades">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Success Rate</div>
+                        <div class="metric-value" id="successRate">0%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">PnL</div>
+                        <div class="metric-value" id="pnl">0 SURGE</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Liquidations</div>
+                        <div class="metric-value" id="liquidations">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top:1.5rem">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="bi bi-exclamation-triangle"></i> Emergency Controls</h2>
+                </div>
+                <button class="btn btn-danger btn-emergency" onclick="emergencyStop()">
+                    <i class="bi bi-stop-circle-fill"></i> EMERGENCY STOP
+                </button>
+                <p style="font-size:0.75rem;color:var(--text-secondary);margin-top:1rem">
+                    This will immediately pause all agent trading operations. Requires owner confirmation.
+                </p>
+            </div>
+            
+            <div class="card" style="margin-top:1.5rem">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="bi bi-gear"></i> Quick Actions</h2>
+                </div>
+                <div class="action-bar">
+                    <button class="btn btn-primary" onclick="refreshData()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportData()">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <script>
+        const CONTRACTS = {
+            AGENT_CONTROLLER: '0x1234567890123456789012345678901234567890',
+            BONDING_VAULT: '0x2345678901234567890123456789012345678901',
+            RISK_CALCULATOR: '0x3456789012345678901234567890123456789012'
+        };
+        
+        const CONFIG = {
+            REFRESH_INTERVAL: 5000,
+            EMERGENCY_CONFIRMATION: true,
+            MAX_TRADES_DISPLAY: 50
+        };
+        
+        let state = {
+            isConnected: false,
+            agentStatus: 'active',
+            lastUpdate: null,
+            trades: [],
+            bondData: {},
+            riskData: {}
+        };
+        
+        async function init() {
+            await connectWallet();
+            await loadContractData();
+            startAutoRefresh();
+            showToast('Dashboard initialized', 'success');
+        }
+        
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    state.isConnected = true;
+                    document.getElementById('walletAddress').textContent = 
+                        `${accounts[0].slice(0,6)}...${accounts[0].slice(-4)}`;
+                    showToast('Wallet connected', 'success');
+                } catch (error) {
+                    state.isConnected = false;
+                    showToast('Wallet connection failed', 'error');
+                }
+            } else {
+                state.isConnected = false;
+                showToast('No wallet detected', 'warning');
+            }
+        }
+        
+        async function loadContractData() {
+            try {
+                const [bondData, riskData, trades] = await Promise.all([
+                    fetchBondData(),
+                    fetchRiskData(),
+                    fetchActiveTrades()
+                ]);
+                
+                state.bondData = bondData;
+                state.riskData = riskData;
+                state.trades = trades;
+                
+                updateDashboard();
+                state.lastUpdate = Date.now();
+            } catch (error) {
+                console.error('Failed to load contract data:', error);
+                showToast('Failed to load contract data', 'error');
+            }
+        }
+        
+        async function fetchBondData() {
+            const response = await fetch(`${window.location.origin}/api/bond-data`);
+            if (!response.ok) throw new Error('Failed to fetch bond data');
+            return response.json();
+        }
+        
+        async function fetchRiskData() {
+            const response = await fetch(`${window.location.origin}/api/risk-data`);
+            if (!response.ok) throw new Error('Failed to fetch risk data');
+            return response.json();
+        }
+        
+        async function fetchActiveTrades() {
+            const response = await fetch(`${window.location.origin}/api/active-trades`);
+            if (!response.ok) throw new Error('Failed to fetch trades');
+            return response.json();
+        }
+        
+        function updateDashboard() {
+            updateBondStatus();
+            updateRiskMetrics();
+            updateTradeList();
+            updatePerformance();
+        }
+        
+        function updateBondStatus() {
+            const { totalBond, riskBuffer, bondCoverage, liquidationThreshold } = state.bondData;
+            
+            document.getElementById('totalBond').textContent = formatBond(totalBond);
+            document.getElementById('riskBuffer').textContent = formatBond(riskBuffer);
+            document.getElementById('bondCoverage').textContent = `${bondCoverage}%`;
+            document.getElementById('liquidationThreshold').textContent = `${liquidationThreshold}%`;
+            
+            const statusEl = document.getElementById('agentStatus');
+            if (state.agentStatus === 'active') {
+                statusEl.className = 'status-badge status-active';
+                statusEl.textContent = 'Active';
+            } else if (state.agentStatus === 'paused') {
+                statusEl.className = 'status-badge status-paused';
+                statusEl.textContent = 'Paused';
+            } else {
+                statusEl.className = 'status-badge status-warning';
+                statusEl.textContent = 'Warning';
+            }
+        }
+        
+        function updateRiskMetrics() {
+            const { riskScore, volatilityIndex, strategyRisk } = state.riskData;
+            
+            document.getElementById('riskScore').textContent = riskScore;
+            document.getElementById('volatilityIndex').textContent = `${volatilityIndex}%`;
+            document.getElementById('strategyRisk').textContent = `${strategyRisk}%`;
+            
+            const riskMeter = document.getElementById('riskMeterFill');
+            const riskLevel = getRiskLevel(riskScore);
+            
+            riskMeter.style.width = `${Math.min(riskScore, 100)}%`;
+            riskMeter.className = `risk-meter-fill risk-${riskLevel}`;
+            
+            document.getElementById('riskChange').textContent = `${state.riskData.riskChange || 0}%`;
+            document.getElementById('volatilityChange').textContent = `${state.riskData.volatilityChange || 0}%`;
+            document.getElementById('strategyChange').textContent = `${state.riskData.strategyChange || 0}%`;
+        }
+        
+        function updateTradeList() {
+            const tradeList = document.getElementById('tradeList');
+            
+            if (state.trades.length === 0) {
+                tradeList.innerHTML = `
+                    <div style="text-align:center;padding:2rem;color:var(--text-secondary)">
+                        <i class="bi bi-clock-history" style="font-size:2rem"></i>
+                        <p style="margin-top:1rem">No active trades</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            tradeList.innerHTML = state.trades.slice(0, CONFIG.MAX_TRADES_DISPLAY).map(trade => `
+                <div class="trade-item">
+                    <div class="trade-info">
+                        <span class="trade-pair">${trade.pair}</span>
+                        <span class="trade-meta">${trade.amount} @ ${trade.price}</span>
+                    </div>
+                    <span class="trade-status ${trade.status}">${trade.status}</span>
+                </div>
+            `).join('');
+        }
+        
+        function updatePerformance() {
+            document.getElementById('totalTrades').textContent = state.bondData.totalTrades || 0;
+            document.getElementById('successRate').textContent = `${state.bondData.successRate || 0}%`;
+            document.getElementById('pnl').textContent = formatBond(state.bondData.pnl || 0);
+            document.getElementById('liquidations').textContent = state.bondData.liquidations || 0;
+        }
+        
+        function getRiskLevel(score) {
+            if (score < 30) return 'low';
+            if (score < 70) return 'medium';
+            return 'high';
+        }
+        
+        function formatBond(amount) {
+            return `${(amount / 1e18).toFixed(2)} SURGE`;
+        }
+        
+        function startAutoRefresh() {
+            setInterval(async () => {
+                if (state.isConnected) {
+                    await loadContractData();
+                }
+            }, CONFIG.REFRESH_INTERVAL);
+        }
+        
+        async function refreshData() {
+            showToast('Refreshing data...', 'info');
+            await loadContractData();
+            showToast('Data refreshed', 'success');
+        }
+        
+        async function emergencyStop() {
+            if (!CONFIG.EMERGENCY_CONFIRMATION) {
+                await callEmergencyStop();
+                return;
+            }
+            
+            if (confirm('Are you sure you want to EMERGENCY STOP the agent? This will pause all trading operations.')) {
+                await callEmergencyStop();
+            }
+        }
+        
+        async function callEmergencyStop() {
+            try {
+                const response = await fetch(`${window.location.origin}/api/emergency-stop`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agentId: 'agent-001' })
+                });
+                
+                if (!response.ok) throw new Error('Failed to stop agent');
+                
+                state.agentStatus = 'paused';
+                updateDashboard();
+                showToast('Agent stopped successfully', 'success');
+            } catch (error) {
+                console.error('Emergency stop failed:', error);
+                showToast('Failed to stop agent', 'error');
+            }
+        }
+        
+        function exportData() {
+            const data = {
+                bondData: state.bondData,
+                riskData: state.riskData,
+                trades: state.trades,
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bondedtradex-export-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('Data exported', 'success');
+        }
+        
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div style="display:flex;align-items:center;gap:0.5rem">
+                    <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
