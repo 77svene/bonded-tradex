@@ -1,0 +1,84 @@
+{
+  "name": "bondedtradex-protocol",
+  "version": "1.0.0-alpha",
+  "description": "ERC-8004 compliant autonomous trading with Dynamic Risk Bonding - First DeFi system enforcing economic liability via volatility-scaled collateral",
+  "type": "module",
+  "scripts": {
+    "bond:init": "hardhat run scripts/bond/initBondingVault.js --network localhost",
+    "bond:adjust": "hardhat run scripts/bond/adjustRiskBond.js --network localhost",
+    "agent:register": "hardhat run scripts/agent/registerAgent.js --network localhost",
+    "agent:execute": "hardhat run scripts/agent/executeTrade.js --network localhost",
+    "bond:liquidate": "hardhat run scripts/bond/liquidateUndercollateralized.js --network localhost",
+    "risk:calculate": "hardhat run scripts/risk/calculateVolatility.js --network localhost",
+    "deploy:full": "hardhat run scripts/deploy/fullDeployment.js --network localhost",
+    "test:all": "hardhat test test/**/*.js",
+    "test:bonding": "hardhat test test/bonding/*.js",
+    "test:agent": "hardhat test test/agent/*.js",
+    "test:risk": "hardhat test test/risk/*.js",
+    "lint": "solhint contracts/**/*.sol",
+    "verify": "hardhat verify",
+    "bond:health": "hardhat run scripts/bond/checkBondHealth.js --network localhost",
+    "agent:audit": "hardhat run scripts/agent/auditAgentRisk.js --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0",
+    "ethers": "^6.11.0",
+    "solhint": "^4.0.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "@openzeppelin/hardhat-upgrades": "^3.0.0",
+    "@chainlink/contracts": "^1.0.0",
+    "0x-api": "^1.0.0"
+  },
+  "keywords": [
+    "defi",
+    "autonomous-agents",
+    "liability-backed",
+    "dynamic-risk-bonding",
+    "erc-8004",
+    "bonding-vault",
+    "risk-calculator",
+    "agent-controller",
+    "volatility-scaled-collateral",
+    "economic-liability",
+    "autonomous-trading",
+    "trustless-execution"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bondedtradex/protocol"
+  },
+  "author": "BondedTradeX Protocol",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bondedtradex/protocol/issues"
+  },
+  "homepage": "https://bondedtradex.io",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "hardhat": {
+    "networks": {
+      "localhost": {
+        "url": "http://127.0.0.1:8545",
+        "chainId": 31337
+      },
+      "sepolia": {
+        "url": "https://rpc.sepolia.org",
+        "chainId": 11155111
+      }
+    },
+    "solidity": {
+      "version": "0.8.24",
+      "settings": {
+        "optimizer": {
+          "enabled": true,
+          "runs": 200
+        },
+        "evmVersion": "cancun"
+      }
+    }
+  }
+}
